@@ -9,7 +9,7 @@
 #include "inffast.h"
 
 #ifdef ASMINF
-#  pragma message("Assembler code may have bugs -- use at your own risk")
+#pragma message("Assembler code may have bugs -- use at your own risk")
 #else
 
 #if (INTPTR_MAX == INT64_MAX) || defined(HAL_ESP32_HAL_H_) || defined(TEENSYDUINO) || defined(ARM_MATH_CM4) || defined(ARM_MATH_CM7)
@@ -50,32 +50,33 @@
       requires strm->avail_out >= 258 for each loop to avoid checking for
       output space.
  */
-void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
+void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start)
+{
     struct inflate_state FAR *state;
-    z_const unsigned char FAR *in;      /* local strm->next_in */
-    z_const unsigned char FAR *last;    /* have enough input while in < last */
-    unsigned char FAR *out;     /* local strm->next_out */
-    unsigned char FAR *beg;     /* inflate()'s initial strm->next_out */
-    unsigned char FAR *end;     /* while out < end, enough space available */
+    z_const unsigned char FAR *in;   /* local strm->next_in */
+    z_const unsigned char FAR *last; /* have enough input while in < last */
+    unsigned char FAR *out;          /* local strm->next_out */
+    unsigned char FAR *beg;          /* inflate()'s initial strm->next_out */
+    unsigned char FAR *end;          /* while out < end, enough space available */
 #ifdef INFLATE_STRICT
-    unsigned dmax;              /* maximum distance from zlib header */
+    unsigned dmax; /* maximum distance from zlib header */
 #endif
-    unsigned wsize;             /* window size or zero if not using window */
-    unsigned whave;             /* valid bytes in the window */
-    unsigned wnext;             /* window write index */
-    unsigned char FAR *window;  /* allocated sliding window, if wsize != 0 */
-    unsigned long hold;         /* local strm->hold */
-    unsigned bits;              /* local strm->bits */
-    code const FAR *lcode;      /* local strm->lencode */
-    code const FAR *dcode;      /* local strm->distcode */
-    unsigned lmask;             /* mask for first level of length codes */
-    unsigned dmask;             /* mask for first level of distance codes */
-    code const *here;           /* retrieved table entry */
-    unsigned op;                /* code bits, operation, extra bits, or */
-                                /*  window position, window bytes to copy */
-    unsigned len;               /* match length, unused bytes */
-    unsigned dist;              /* match distance */
-    unsigned char FAR *from;    /* where to copy match from */
+    unsigned wsize;            /* window size or zero if not using window */
+    unsigned whave;            /* valid bytes in the window */
+    unsigned wnext;            /* window write index */
+    unsigned char FAR *window; /* allocated sliding window, if wsize != 0 */
+    unsigned long hold;        /* local strm->hold */
+    unsigned bits;             /* local strm->bits */
+    code const FAR *lcode;     /* local strm->lencode */
+    code const FAR *dcode;     /* local strm->distcode */
+    unsigned lmask;            /* mask for first level of length codes */
+    unsigned dmask;            /* mask for first level of distance codes */
+    code const *here;          /* retrieved table entry */
+    unsigned op;               /* code bits, operation, extra bits, or */
+                               /*  window position, window bytes to copy */
+    unsigned len;              /* match length, unused bytes */
+    unsigned dist;             /* match distance */
+    unsigned char FAR *from;   /* where to copy match from */
 
     /* copy state to local variables */
     state = (struct inflate_state FAR *)strm->state;
@@ -100,30 +101,34 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
 
     /* decode literals and length/distances until end-of-block or not enough
        input data or output space */
-    do {
-        if (bits < 15) {
+    do
+    {
+        if (bits < 15)
+        {
             hold += (unsigned long)(*in++) << bits;
             bits += 8;
             hold += (unsigned long)(*in++) << bits;
             bits += 8;
         }
         here = lcode + (hold & lmask);
-      dolen:
+    dolen:
         op = (unsigned)(here->bits);
         hold >>= op;
         bits -= op;
         op = (unsigned)(here->op);
-        if (op == 0) {                          /* literal */
-            Tracevv((stderr, here->val >= 0x20 && here->val < 0x7f ?
-                    "inflate:         literal '%c'\n" :
-                    "inflate:         literal 0x%02x\n", here->val));
+        if (op == 0)
+        { /* literal */
+            PNGDEC_TRACEvv((stderr, here->val >= 0x20 && here->val < 0x7f ? "inflate:         literal '%c'\n" : "inflate:         literal 0x%02x\n", here->val));
             *out++ = (unsigned char)(here->val);
         }
-        else if (op & 16) {                     /* length base */
+        else if (op & 16)
+        { /* length base */
             len = (unsigned)(here->val);
-            op &= 15;                           /* number of extra bits */
-            if (op) {
-                if (bits < op) {
+            op &= 15; /* number of extra bits */
+            if (op)
+            {
+                if (bits < op)
+                {
                     hold += (unsigned long)(*in++) << bits;
                     bits += 8;
                 }
@@ -131,33 +136,38 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                 hold >>= op;
                 bits -= op;
             }
-            Tracevv((stderr, "inflate:         length %u\n", len));
-            if (bits < 15) {
+            PNGDEC_TRACEvv((stderr, "inflate:         length %u\n", len));
+            if (bits < 15)
+            {
                 hold += (unsigned long)(*in++) << bits;
                 bits += 8;
                 hold += (unsigned long)(*in++) << bits;
                 bits += 8;
             }
             here = dcode + (hold & dmask);
-          dodist:
+        dodist:
             op = (unsigned)(here->bits);
             hold >>= op;
             bits -= op;
             op = (unsigned)(here->op);
-            if (op & 16) {                      /* distance base */
+            if (op & 16)
+            { /* distance base */
                 dist = (unsigned)(here->val);
-                op &= 15;                       /* number of extra bits */
-                if (bits < op) {
+                op &= 15; /* number of extra bits */
+                if (bits < op)
+                {
                     hold += (unsigned long)(*in++) << bits;
                     bits += 8;
-                    if (bits < op) {
+                    if (bits < op)
+                    {
                         hold += (unsigned long)(*in++) << bits;
                         bits += 8;
                     }
                 }
                 dist += (unsigned)hold & ((1U << op) - 1);
 #ifdef INFLATE_STRICT
-                if (dist > dmax) {
+                if (dist > dmax)
+                {
                     strm->msg = (char *)"invalid distance too far back";
                     state->mode = BAD;
                     break;
@@ -165,31 +175,39 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
 #endif
                 hold >>= op;
                 bits -= op;
-                Tracevv((stderr, "inflate:         distance %u\n", dist));
-                op = (unsigned)(out - beg);     /* max distance in output */
-                if (dist > op) {                /* see if copy from window */
-                    op = dist - op;             /* distance back in window */
-                    if (op > whave) {
-                        if (state->sane) {
+                PNGDEC_TRACEvv((stderr, "inflate:         distance %u\n", dist));
+                op = (unsigned)(out - beg); /* max distance in output */
+                if (dist > op)
+                {                   /* see if copy from window */
+                    op = dist - op; /* distance back in window */
+                    if (op > whave)
+                    {
+                        if (state->sane)
+                        {
                             strm->msg =
                                 (char *)"invalid distance too far back";
                             state->mode = BAD;
                             break;
                         }
 #ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
-                        if (len <= op - whave) {
-                            do {
+                        if (len <= op - whave)
+                        {
+                            do
+                            {
                                 *out++ = 0;
                             } while (--len);
                             continue;
                         }
                         len -= op - whave;
-                        do {
+                        do
+                        {
                             *out++ = 0;
                         } while (--op > whave);
-                        if (op == 0) {
+                        if (op == 0)
+                        {
                             from = out - dist;
-                            do {
+                            do
+                            {
                                 *out++ = *from++;
                             } while (--len);
                             continue;
@@ -197,49 +215,61 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
 #endif
                     }
                     from = window;
-                    if (wnext == 0) {           /* very common case */
+                    if (wnext == 0)
+                    { /* very common case */
                         from += wsize - op;
-                        if (op < len) {         /* some from window */
+                        if (op < len)
+                        { /* some from window */
                             len -= op;
-                            do {
+                            do
+                            {
                                 *out++ = *from++;
                             } while (--op);
-                            from = out - dist;  /* rest from output */
+                            from = out - dist; /* rest from output */
                         }
                     }
-                    else if (wnext < op) {      /* wrap around window */
+                    else if (wnext < op)
+                    { /* wrap around window */
                         from += wsize + wnext - op;
                         op -= wnext;
-                        if (op < len) {         /* some from end of window */
+                        if (op < len)
+                        { /* some from end of window */
                             len -= op;
-                            do {
+                            do
+                            {
                                 *out++ = *from++;
                             } while (--op);
                             from = window;
-                            if (wnext < len) {  /* some from start of window */
+                            if (wnext < len)
+                            { /* some from start of window */
                                 op = wnext;
                                 len -= op;
-                                do {
+                                do
+                                {
                                     *out++ = *from++;
                                 } while (--op);
-                                from = out - dist;      /* rest from output */
+                                from = out - dist; /* rest from output */
                             }
                         }
                     }
-                    else {                      /* contiguous in window */
+                    else
+                    { /* contiguous in window */
                         from += wnext - op;
-                        if (op < len) {         /* some from window */
+                        if (op < len)
+                        { /* some from window */
                             len -= op;
-                            do {
+                            do
+                            {
                                 *out++ = *from++;
                             } while (--op);
-                            from = out - dist;  /* rest from output */
+                            from = out - dist; /* rest from output */
                         }
                     }
 #ifdef ALLOWS_UNALIGNED
                     {
-                    uint8_t *pEnd = out+len;
-                        while (out < pEnd) {
+                        uint8_t *pEnd = out + len;
+                        while (out < pEnd)
+                        {
                             *(uint32_t *)out = *(uint32_t *)from;
                             out += 4;
                             from += 4;
@@ -248,88 +278,109 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
                         out = pEnd;
                     }
 #else
-                        while (len > 2) {
+                    while (len > 2)
+                    {
+                        *out++ = *from++;
+                        *out++ = *from++;
+                        *out++ = *from++;
+                        len -= 3;
+                    }
+                    if (len)
+                    {
+                        *out++ = *from++;
+                        if (len > 1)
                             *out++ = *from++;
-                            *out++ = *from++;
-                            *out++ = *from++;
-                            len -= 3;
-                        }
-                        if (len) {
-                            *out++ = *from++;
-                            if (len > 1)
-                                *out++ = *from++;
-                        }
+                    }
 #endif // ALLOWS_UNALIGNED
                 }
-                else {
-                    from = out - dist;          /* copy direct from output */
+                else
+                {
+                    from = out - dist; /* copy direct from output */
 #ifdef ALLOWS_UNALIGNED
                     {
-                        uint8_t *pEnd = out+len;
-                        int overlap = (int)(intptr_t)(out-from);
-                        if (overlap > 4) { // overlap of source/dest won't impede normal copy
-                            while (out < pEnd) {
+                        uint8_t *pEnd = out + len;
+                        int overlap = (int)(intptr_t)(out - from);
+                        if (overlap > 4)
+                        { // overlap of source/dest won't impede normal copy
+                            while (out < pEnd)
+                            {
                                 *(uint32_t *)out = *(uint32_t *)from;
                                 out += 4;
                                 from += 4;
                             }
                             // correct for possible overshoot of destination ptr
                             out = pEnd;
-                        } else if (overlap == 1 || overlap == 4) { // copy 1/4-byte patterns
+                        }
+                        else if (overlap == 1 || overlap == 4)
+                        { // copy 1/4-byte patterns
                             uint32_t pattern;
-                            if (overlap == 1) {
+                            if (overlap == 1)
+                            {
                                 pattern = *from;
                                 pattern = pattern | (pattern << 8);
                                 pattern = pattern | (pattern << 16);
-                            } else {
+                            }
+                            else
+                            {
                                 pattern = *(uint32_t *)from;
                             }
-                            while (out < pEnd) {
+                            while (out < pEnd)
+                            {
                                 *(uint32_t *)out = pattern;
                                 out += 4;
                             }
                             out = pEnd; // correct possible overshoot
-                        } else { // overlap of 2 or 3
-                            while (out < pEnd) {
+                        }
+                        else
+                        { // overlap of 2 or 3
+                            while (out < pEnd)
+                            {
                                 *out++ = *from++;
                             }
                         }
                     }
 #else
-                        do {                        /* minimum length is three */
+                    do
+                    { /* minimum length is three */
+                        *out++ = *from++;
+                        *out++ = *from++;
+                        *out++ = *from++;
+                        len -= 3;
+                    } while (len > 2);
+                    if (len)
+                    {
+                        *out++ = *from++;
+                        if (len > 1)
                             *out++ = *from++;
-                            *out++ = *from++;
-                            *out++ = *from++;
-                            len -= 3;
-                        } while (len > 2);
-                        if (len) {
-                            *out++ = *from++;
-                            if (len > 1)
-                                *out++ = *from++;
-                        }
+                    }
 #endif // ALLOWS_UNALIGNED
                 }
             }
-            else if ((op & 64) == 0) {          /* 2nd level distance code */
+            else if ((op & 64) == 0)
+            { /* 2nd level distance code */
                 here = dcode + here->val + (hold & ((1U << op) - 1));
                 goto dodist;
             }
-            else {
+            else
+            {
                 strm->msg = (char *)"invalid distance code";
                 state->mode = BAD;
                 break;
             }
         }
-        else if ((op & 64) == 0) {              /* 2nd level length code */
+        else if ((op & 64) == 0)
+        { /* 2nd level length code */
             here = lcode + here->val + (hold & ((1U << op) - 1));
             goto dolen;
         }
-        else if (op & 32) {                     /* end-of-block */
-            Tracevv((stderr, "inflate:         end of block\n"));
+        else if (op & 32)
+        { /* end-of-block */
+            PNGDEC_TRACEvv((stderr, "inflate:         end of block\n"));
             state->mode = TYPE;
             break;
         }
-        else {
+        else
+        {
             strm->msg = (char *)"invalid literal/length code";
             state->mode = BAD;
             break;
@@ -346,8 +397,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm, unsigned start) {
     strm->next_in = in;
     strm->next_out = out;
     strm->avail_in = (unsigned)(in < last ? 5 + (last - in) : 5 - (in - last));
-    strm->avail_out = (unsigned)(out < end ?
-                                 257 + (end - out) : 257 - (out - end));
+    strm->avail_out = (unsigned)(out < end ? 257 + (end - out) : 257 - (out - end));
     state->hold = hold;
     state->bits = bits;
     return;

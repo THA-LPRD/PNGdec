@@ -4,6 +4,10 @@ Copyright (c) 2021 BitBank Software, Inc.<br>
 Written by Larry Bank<br>
 bitbank@pobox.com<br>
 
+This is a fork of the original [PNGdec library](https://github.com/bitbank2/PNGdec). Fallowing changes are done to lib:
+
+In file [src/PNGdec.h](src/PNGdec.h) line 53 Macro that defines `PNG_MAX_BUFFERED_PIXELS` is changed to check if it is already defined in order to allow users to define a custom value for it.
+
 What is it?
 ------------
 An 'embedded-friendly' (aka Arduino) PNG image decoding library<br>
